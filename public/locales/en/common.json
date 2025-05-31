@@ -25,7 +25,9 @@
     "searchBySi": "Search by SI Number",
     "productArrivals": "Product-wise Arrivals",
     "statusChart": "Status Chart",
-    "productNameOrder": "Product Name Order"
+    "productNameOrder": "Product Name Order",
+    "productNameAsc": "▲ Product Name Asc",
+    "productNameDesc": "▼ Product Name Desc"
   },
   "placeholder": {
     "shopId": "e.g.: test-owner",
@@ -128,5 +130,43 @@
       "deleteSuccess": "Deleted successfully",
       "deleteConfirm": "Are you sure you want to delete?"
     }
+  },
+  "ocrUploader": {
+    "title": "Image Upload & OCR",
+    "dropzoneText": "Drop an image here or click to select",
+    "ocrButton": "Run OCR",
+    "uploadedImage": "Uploaded Image",
+    "ocrResultTitle": "OCR Recognized Text (editable)",
+    "ocrResultPlaceholder": "OCR result will be displayed here",
+    "siNumber": "SI Number",
+    "supplierName": "Supplier",
+    "transportType": "Transport Type",
+    "productList": "Product List",
+    "productName": "Product Name",
+    "quantity": "Quantity",
+    "delete": "Delete",
+    "noProductData": "No product data available",
+    "addProduct": "+ Add Product",
+    "aiButton": "Auto-fill missing fields with AI",
+    "saveButton": "Register this information",
+    "emptyOcrText": "OCR text is empty",
+    "ocrFail": "Failed to load PDF or run OCR",
+    "unsupportedFileType": "Unsupported file type (only images or PDFs allowed)",
+    "convertError": "Failed to convert image",
+    "aiFail": "AI auto-fill failed: {{message}}",
+    "aiParseFail": "Could not parse AI response",
+    "noShopId": "No shop selected",
+    "siRequired": "SI Number is required",
+    "initialStatus": "SI Issued",
+    "apiFail": "API request failed",
+    "apiJsonFail": "Failed to parse API response as JSON",
+    "apiLogicFail": "API processing error",
+    "saveSuccess": "Data was saved successfully!",
+    "saveFail": "Failed to save: {{message}}"
+  },
+  "tabs": {
+    "search": "Search by SI Number",
+    "product": "Planned arrivals by product",
+    "status": "Status-wise chart"
   }
 }

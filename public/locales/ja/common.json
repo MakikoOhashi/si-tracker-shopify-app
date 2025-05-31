@@ -25,7 +25,9 @@
     "searchBySi": "SI番号で検索",
     "productArrivals": "商品別の入荷予定",
     "statusChart": "ステータスごとのチャート",
-    "productNameOrder": "商品名順"
+    "productNameOrder": "商品名順",
+    "productNameAsc": "▲ 商品名順",
+    "productNameDesc": "▼ 商品名順"
   },
   "placeholder": {
     "shopId": "例: test-owner",
@@ -128,5 +130,43 @@
       "deleteSuccess": "削除しました",
       "deleteConfirm": "本当に削除してよろしいですか？"
     }
+  },
+  "ocrUploader": {
+    "title": "画像アップロード & OCR",
+    "dropzoneText": "ここに画像をドロップ、またはクリックして選択",
+    "ocrButton": "OCR実行",
+    "uploadedImage": "アップロード画像",
+    "ocrResultTitle": "OCR認識テキスト（編集可）",
+    "ocrResultPlaceholder": "ここにOCR認識結果が表示されます",
+    "siNumber": "SI番号",
+    "supplierName": "仕入先",
+    "transportType": "輸送手段",
+    "productList": "商品リスト",
+    "productName": "商品名",
+    "quantity": "数量",
+    "delete": "削除",
+    "noProductData": "商品データがありません",
+    "addProduct": "＋商品追加",
+    "aiButton": "AIで未入力項目を補完",
+    "saveButton": "この内容で登録",
+    "emptyOcrText": "OCRテキストが空です",
+    "ocrFail": "PDFの読み込みまたはOCRに失敗しました",
+    "unsupportedFileType": "対応していないファイル形式です（画像またはPDFのみ）",
+    "convertError": "画像変換に失敗しました",
+    "aiFail": "AI補完に失敗しました: {{message}}",
+    "aiParseFail": "AIの応答を解析できませんでした",
+    "noShopId": "店舗が選択されていません",
+    "siRequired": "SI番号は必須項目です",
+    "initialStatus": "SI発行済",
+    "apiFail": "APIリクエストが失敗しました",
+    "apiJsonFail": "APIレスポンスのJSON解析に失敗しました",
+    "apiLogicFail": "API処理エラー",
+    "saveSuccess": "データが正常に保存されました！",
+    "saveFail": "保存に失敗しました: {{message}}"
+  },
+  "tabs": {
+    "search": "SI番号で検索",
+    "product": "商品別の入荷予定",
+    "status": "ステータスごとのチャート"
   }
 }

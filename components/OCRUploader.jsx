@@ -2,10 +2,12 @@
 
 import React, { useState, useEffect } from "react";
 import { Card, DropZone, Text, Spinner, TextField, Button, Banner } from "@shopify/polaris";
+import { useTranslation } from "next-i18next";
 import Tesseract from "tesseract.js";
 
 
 export default function OCRUploader({ shopId, onSaveSuccess }) {
+  const { t } = useTranslation("common");
   const [file, setFile] = useState(null);
   const [imageUrl, setImageUrl] = useState("");
   const [ocrText, setOcrText] = useState("");
@@ -21,8 +23,6 @@ export default function OCRUploader({ shopId, onSaveSuccess }) {
   });
   const [error, setError] = useState("");
 
-
-
   // PDFをCanvas画像化→OCR
   const pdfToImageAndOcr = async (pdfFile) => {
     try {
@@ -34,7 +34,7 @@ export default function OCRUploader({ shopId, onSaveSuccess }) {
         body: formData,
       });
       const data = await res.json();
-      if (!data.url) throw new Error("画像変換失敗");
+      if (!data.url) throw new Error(t("ocrUploader.convertError"));
   
       // 画像URLをプレビュー用にセット
       setImageUrl(data.url);
@@ -46,7 +46,7 @@ export default function OCRUploader({ shopId, onSaveSuccess }) {
       );
       return ocrResult.text;
     } catch (e) {
-      setError("PDFの読み込みまたはOCRに失敗しました");
+      setError(t("ocrUploader.convertError"));
       return "";
     }
   };
@@ -82,7 +82,7 @@ export default function OCRUploader({ shopId, onSaveSuccess }) {
       } else if (file.type.startsWith("image/")) {
         text = await imageToOcr(file);
       } else {
-        setError("対応していないファイル形式です（画像またはPDFのみ）");
+        setError(t("ocrUploader.unsupportedFileType"));
       }
       setOcrText(text);
       setOcrTextEdited(text);
@@ -162,7 +162,7 @@ export default function OCRUploader({ shopId, onSaveSuccess }) {
    // AI補助（未入力項目のみAIで補完）
    const handleAiAssist = async () => {
     if (!ocrTextEdited.trim()) {
-      setError("OCRテキストが空です");
+      setError(t("ocrUploader.emptyOcrText"));
       return;
     }
     
@@ -197,7 +197,7 @@ export default function OCRUploader({ shopId, onSaveSuccess }) {
         aiFields = JSON.parse(data.result);
       } catch (parseError) {
         console.error("JSON parse error:", parseError, "Raw result:", data.result);
-        setError("AIの応答を解析できませんでした");
+        setError(t("ocrUploader.aiParseFail"));
         return;
       }
       
@@ -234,12 +234,12 @@ export default function OCRUploader({ shopId, onSaveSuccess }) {
   const handleSaveToSupabase = async () => {
     // shopIdの必須チェック
     if (!shopId) {
-      setError("店舗が選択されていません");
+      setError(t("ocrUploader.noShopId"));
       return;
     }
     // バリデーション
     if (!fields.si_number) {
-      setError("SI番号は必須項目です");
+      setError(t("ocrUploader.siRequired"));
       return;
     }
 
@@ -254,7 +254,7 @@ export default function OCRUploader({ shopId, onSaveSuccess }) {
         transport_type: fields.transport_type || null,
         items: fields.items || [],// ← JSONBカラムにそのまま保存
         ocr_text: ocrTextEdited,
-        status: "SI発行済",
+        status: t("ocrUploader.initialStatus"),
         etd: null,
         eta: null,
         delayed: false,
@@ -329,27 +329,21 @@ export default function OCRUploader({ shopId, onSaveSuccess }) {
         OCRテキスト: ocrTextEdited,
         shopId: shopId
       });
-      setError(`保存に失敗しました: ${error.message}`);
+      setError(t("ocrUploader.saveFail", { message: error.message }));
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <Card sectioned title="画像アップロード & OCR">
+    <Card sectioned title={t("ocrUploader.title")}>
       {error && <Banner status="critical">{error}</Banner>}
- {/* shopId確認用（開発時のみ表示、本番では削除推奨）
- {shopId && (
-        <div style={{ marginBottom: 16, padding: 8, backgroundColor: "#f0f0f0", borderRadius: 4 }}>
-          <Text variant="bodyMd" color="subdued">選択中の店舗ID: {shopId}</Text>
-        </div>
-      )}  */}
 
       <DropZone accept="image/*,application/pdf" onDrop={handleDrop}>
         {!file ? (
           <div style={{ textAlign: "center", paddingInlineStartadding: 20, width: "100%" }}>
           <Text variant="bodyMd" as="span">
-            ここに画像をドロップ、またはクリックして選択
+          {t("ocrUploader.dropzoneText")}
           </Text>
         </div>
         ) : (
@@ -359,7 +353,7 @@ export default function OCRUploader({ shopId, onSaveSuccess }) {
       {file && (
         <div style={{ marginTop: 16 }}>
           <button onClick={handleOcr} disabled={loading}>
-            OCR実行
+          {t("ocrUploader.ocrButton")}
           </button>
         </div>
       )}
@@ -371,7 +365,7 @@ export default function OCRUploader({ shopId, onSaveSuccess }) {
         <div style={{ display: "flex", gap: 32, marginTop: 32, alignItems: "flex-start", flexWrap: "wrap" }}>
           {/* 画像プレビュー */}
           <div style={{ minWidth: 280, maxWidth: 400 }}>
-            <Text variant="headingMd">アップロード画像</Text>
+            <Text variant="headingMd">{t("ocrUploader.uploadedImage")}</Text>
             <img
               src={imageUrl}
               alt="uploaded"
@@ -387,55 +381,55 @@ export default function OCRUploader({ shopId, onSaveSuccess }) {
           </div>
           {/* OCR編集テキストエリア＋FORM */}
           <div style={{ flex: 1, minWidth: 320 }}>
-            <Text variant="headingMd">OCR認識テキスト（編集可）</Text>
+            <Text variant="headingMd">{t("ocrUploader.ocrResultTitle")}</Text>
             <TextField
               multiline={10}
               value={ocrTextEdited}
               onChange={setOcrTextEdited}
               autoComplete="off"
-              placeholder="ここにOCR認識結果が表示されます"
+              placeholder={t("ocrUploader.ocrResultPlaceholder")}
               style={{ fontFamily: "monospace", marginTop: 8, minHeight: 180 }}
             />
             {/* フォーム項目 */}
             <div style={{ marginTop: 16 }}>
-              <TextField label="SI番号" value={fields.si_number} onChange={val => handleFieldChange("si_number", val)} autoComplete="off" />
-              <TextField label="仕入先" value={fields.supplier_name} onChange={val => handleFieldChange("supplier_name", val)} autoComplete="off" />
-              <TextField label="輸送手段" value={fields.transport_type} onChange={val => handleFieldChange("transport_type", val)} autoComplete="off" />
+            <TextField label={t("ocrUploader.siNumber")} value={fields.si_number} onChange={val => handleFieldChange("si_number", val)} autoComplete="off" />
+            <TextField label={t("ocrUploader.supplierName")} value={fields.supplier_name} onChange={val => handleFieldChange("supplier_name", val)} autoComplete="off" />
+            <TextField label={t("ocrUploader.transportType")} value={fields.transport_type} onChange={val => handleFieldChange("transport_type", val)} autoComplete="off" />
               {/* items入力欄 */}
               <div style={{ marginTop: 12 }}>
-                <Text variant="headingSm">商品リスト</Text>
+                <Text variant="headingSm">{t("ocrUploader.productList")}</Text>
                 {fields.items && fields.items.length > 0 ? (
                   fields.items.map((item, idx) => (
                     <div key={idx} style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 4 }}>
                       <TextField
-                        label="商品名"
+                        label={t("ocrUploader.productName")}
                         value={item.name || ""}
                         onChange={v => handleItemChange(idx, "name", v)}
                         autoComplete="off"
                         style={{ width: 160 }}
                       />
                       <TextField
-                        label="数量"
+                        label={t("ocrUploader.quantity")}
                         type="number"
                         value={item.quantity || ""}
                         onChange={v => handleItemChange(idx, "quantity", v)}
                         autoComplete="off"
                         style={{ width: 100 }}
                       />
-                      <Button size="slim" destructive onClick={() => handleRemoveItem(idx)}>削除</Button>
+                      <Button size="slim" destructive onClick={() => handleRemoveItem(idx)}>{t("ocrUploader.delete")}</Button>
                     </div>
                   ))
                 ) : (
-                  <Text color="subdued">商品データがありません</Text>
+                  <Text color="subdued">{t("ocrUploader.noProductData")}</Text>
                 )}
-                <Button size="slim" onClick={handleAddItem} style={{ marginTop: 4 }}>＋商品追加</Button>
+                <Button size="slim" onClick={handleAddItem} style={{ marginTop: 4 }}>{t("ocrUploader.addProduct")}</Button>
               </div>
             </div>
             {/* AI補助ボタン */}
             <div style={{ marginTop: 16, display: "flex", gap: 12 }}>
-              <Button onClick={handleAiAssist} disabled={aiLoading}>AIで未入力項目を補完</Button>
+              <Button onClick={handleAiAssist} disabled={aiLoading}>{t("ocrUploader.aiButton")}</Button>
               {aiLoading && <Spinner />}
-              <Button primary onClick={handleSaveToSupabase} disabled={!fields.si_number && !fields.supplier_name && !fields.eta && !fields.amount}>この内容で登録</Button>
+              <Button primary onClick={handleSaveToSupabase} disabled={!fields.si_number && !fields.supplier_name && !fields.eta && !fields.amount}>{t("ocrUploader.saveButton")}</Button>
             </div>
           </div>
         </div>

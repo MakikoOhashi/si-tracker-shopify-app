@@ -173,9 +173,9 @@ export default function Home() {
     
   // Polaris用タブ
   const tabs = [
-    { id: 'search', content: 'SI番号で検索' },
-    { id: 'product', content: '商品別の入荷予定' },
-    { id: 'status', content: 'ステータスごとのチャート' },
+    { id: 'search', content: t('tabs.search') },
+    { id: 'product', content: t('tabs.product') },
+    { id: 'status', content: t('tabs.status') },
   ];
   const selectedTab = tabs.findIndex(tab => tab.id === detailViewMode);
 
@@ -322,7 +322,7 @@ export default function Home() {
           size="slim"
           plain
         >
-          {productStatsSort === 'name-asc' ? '▲ 商品名順' : '▼ 商品名順'}
+          {productStatsSort === 'name-asc' ?t('button.productNameAsc') : t('button.productNameDesc')}
         </Button>
       </div>
         <DataTable
@@ -448,11 +448,11 @@ export default function Home() {
             <>
               <Text as="h3" variant="headingMd">{t('title.siSearch')}</Text>
               <TextField
-                label="SI番号"
+                label={t('label.siNumber')}
                 value={siQuery}
                 onChange={setSiQuery}
                 autoComplete="off"
-                placeholder="SI番号を入力"
+                placeholder={t('placeholder.siNumber')}
                 clearButton
                 onClearButtonClick={() => setSiQuery('')}
               />
