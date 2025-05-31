@@ -1,48 +1,57 @@
 //my-next-app/components/StatusTable.jsx
 
 import React, { useState } from 'react';
+import { useTranslation } from 'next-i18next';
+import { Checkbox, DataTable, Text } from '@shopify/polaris';
 
 function StatusTable({ shipments, onSelectShipment }) {
+  const { t } = useTranslation('common');
   const [showArchived, setShowArchived] = useState(false);
 
   const filteredShipments = showArchived
     ? shipments
     : shipments.filter((s) => !s.is_archived);
 
+    const rows = filteredShipments.map((s) => [
+      <Text 
+        as="span" 
+        color="interactive" 
+        textDecorationLine="underline"
+        onClick={() => onSelectShipment(s)}
+        style={{ cursor: 'pointer' }}
+      >
+        {s.si_number}
+      </Text>,
+      s.status,
+      s.eta,
+    ]);
+  
+    const columnContentTypes = ['text', 'text', 'text'];
+  
+    const headings = [
+      t('statusTable.siNumber'),
+      t('statusTable.status'),
+      t('statusTable.eta'),
+    ];
+
   return (
     <div>
-      <label style={{ display: 'block', marginBottom: '10px' }}>
-        <input
-          type="checkbox"
+      <div style={{ marginBottom: '16px' }}>
+        <Checkbox
+          label={t('statusTable.showArchived')}
           checked={showArchived}
-          onChange={(e) => setShowArchived(e.target.checked)}
+          onChange={setShowArchived}
         />
-        アーカイブも表示
-      </label>
+      </div>
 
-      <table border="1" cellPadding="8" style={{ width: '100%', borderCollapse: 'collapse' }}>
-        <thead>
-          <tr>
-            <th>SI番号</th>
-            <th>ステータス</th>
-            <th>ETA</th>
-          </tr>
-        </thead>
-        <tbody>
-          {filteredShipments.map((s) => (
-            <tr key={s.si_number}>
-              <td
-                className="text-blue-600 cursor-pointer"
-                onClick={() => onSelectShipment(s)}
-              >
-                {s.si_number}
-              </td>
-              <td>{s.status}</td>
-              <td>{s.eta}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+
+      <DataTable
+        columnContentTypes={columnContentTypes}
+        headings={headings}
+        rows={rows}
+        hasZebraStriping
+      />
+      
     </div>
   );
 }

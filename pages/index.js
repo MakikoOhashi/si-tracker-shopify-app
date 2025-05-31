@@ -4,14 +4,19 @@
 // src/App.jsxからの移植
 import React, { useEffect, useState, useRef } from 'react';
 import { AppProvider,Page, Card, Button, ButtonGroup, DataTable, TextField, Tabs, Banner, InlineStack, BlockStack, TextContainer, Text } from '@shopify/polaris';
+import { useTranslation } from 'next-i18next';
+import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import CustomModal from '@/components/Modal';
 // import { supabase } from './supabaseClient';
 //import { supabase } from "@/supabaseClient";
 import StatusCard from '@/components/StatusCard';
 import StatusTable from '@/components/StatusTable';
 import OCRUploader from "@/components/OCRUploader";
+import LanguageSwitcher from '@/components/LanguageSwitcher';
 
 export default function Home() {
+  const { t } = useTranslation('common');
+
   const [shopIdInput, setShopIdInput] = useState("test-owner");
   const [shopId, setShopId] = useState("test-owner");
   const [viewMode, setViewMode] = useState('card');
@@ -26,6 +31,17 @@ export default function Home() {
   const popupTimeout = useRef(null);
   const POPUP_WIDTH = 320;
   const POPUP_HEIGHT = 180;
+
+  // ステータスの翻訳マッピング
+  const statusTranslationMap = {
+    "SI発行済": t('status.siIssued'),
+    "船積スケジュール確定": t('status.scheduleConfirmed'),
+    "船積中": t('status.shipping'),
+    "輸入通関中": t('status.customsClearance'),
+    "倉庫着": t('status.warehouseArrived'),
+    "未設定": t('status.notSet')
+  };
+
   const statusOrder = ["SI発行済", "船積スケジュール確定", "船積中", "輸入通関中", "倉庫着"];
 
   // 修正1: supabaseで直接取得→API経由に変更
@@ -172,29 +188,33 @@ export default function Home() {
   // --- JSX ---
   return (
     <>
-      <Page title="オーナーごとの出荷一覧">
+      <Page title={t('title.shipmentsByOwner')}>
         
         <Card sectioned>
+          {/* 言語切り替え */}
+          <div style={{ marginBottom: 16 }}>
+            <LanguageSwitcher />
+          </div>
           
           <TextField
-            label="Shop ID（オーナーID）"
+            label={t('label.shopId')}
             value={shopIdInput}
             onChange={handleInputChange}
             autoComplete="off"
-            placeholder="例: test-owner"
+            placeholder={t('placeholder.shopId')}
           />
           <Button primary onClick={handleShopIdApply} style={{ marginTop: 16 }}>
-            切り替え
+          {t('button.switch')}
           </Button>
           
         </Card>
        
         {/* ETAが近い上位2件のリスト表示 */}     
-        <Card title="近日入荷予定の出荷" sectioned>
+        <Card title={t('title.upcomingArrivals')} sectioned>
         
-        <p>近日入荷予定</p>
+        <p>{t('message.upcomingArrivals')}</p>
         {shipments.length === 0 ? (
-            <p>データがありません</p>
+            <p>{t('message.noData')}</p>
           ) : (
         <ul style={{ listStyle: 'none', padding: 0 }}>
           {upcomingShipments.map((s) => (
@@ -212,7 +232,7 @@ export default function Home() {
       </Page>
     
 
-    <Page title="入荷ステータス一覧">
+    <Page title={t('title.arrivalStatus')}>
       
         {/* ここにOCRアップローダーを追加 - shopIdを渡す */}
         <OCRUploader 
@@ -224,8 +244,8 @@ export default function Home() {
        <Card sectioned>
         
         <ButtonGroup>
-          <Button primary={viewMode === 'card'} onClick={() => setViewMode('card')}>カード表示</Button>
-          <Button primary={viewMode === 'table'} onClick={() => setViewMode('table')}>テーブル表示</Button>
+          <Button primary={viewMode === 'card'} onClick={() => setViewMode('card')}>{t('button.cardView')}</Button>
+          <Button primary={viewMode === 'table'} onClick={() => setViewMode('table')}>{t('button.tableView')}</Button>
         </ButtonGroup>
       
 
@@ -255,23 +275,23 @@ export default function Home() {
 
 {/* 詳細表示　　セクション */}
 <Card sectioned>
-  <Text as="h2" variant="headingLg">詳細表示セクション（例：クリックで情報表示）</Text>
+  <Text as="h2" variant="headingLg">{t('title.detailDisplay')}</Text>
 
   <ButtonGroup>
     <Button primary={detailViewMode === 'search'}
       onClick={() => setDetailViewMode('search')}
     >
-      SI番号で検索
+      {t('button.searchBySi')}
     </Button>
     <Button primary={detailViewMode === 'product'}
       onClick={() => setDetailViewMode('product')}
     >
-      商品別の入荷予定
+       {t('button.productArrivals')}
     </Button>
     <Button primary={detailViewMode === 'status'}
       onClick={() => setDetailViewMode('status')}
     >
-      ステータスごとのチャート
+      {t('button.statusChart')}
     </Button>
   </ButtonGroup>
   {/* ←この下にトグルで統計表を追加 */}
@@ -290,7 +310,7 @@ export default function Home() {
        {/* 商品別 */}
        {detailViewMode === 'product' && (
       <>
-      <Text as="h3" variant="headingMd">商品別の入荷予定（全出荷分）</Text>
+      <Text as="h3" variant="headingMd">{t('title.productArrivals')}</Text>
       <div style={{ marginBottom: 12 }}>        
         <Button
           onClick={() =>
@@ -307,7 +327,7 @@ export default function Home() {
       </div>
         <DataTable
             columnContentTypes={['text', 'numeric']}
-            headings={['商品名', '合計個数']}
+            headings={[t('label.productName'), t('label.totalQuantity')]}
             rows={getProductStats(shipments, productStatsSort).map(([name, qty]) => [
               <span
               key={name}
@@ -343,10 +363,10 @@ export default function Home() {
           onMouseEnter={handlePopupMouseEnter}
           onMouseLeave={handlePopupMouseLeave}
         >
-          <b>「{hoveredProduct}」積載SI一覧</b>
+          <b>{t('message.siListWith', { productName: hoveredProduct })}</b>
           <DataTable
             columnContentTypes={['text', 'text', 'numeric', 'text']}
-            headings={['SI番号', '商品名', '数量', 'ステータス']}
+            headings={[t('label.siNumber'), t('label.productName'), t('label.quantity'), t('label.status')]}
             rows={
               shipments
                 .filter(s => (s.items || []).some(item => item.name === hoveredProduct))
@@ -388,7 +408,7 @@ export default function Home() {
      {/* ステータスごとのチャート */}
      {detailViewMode === 'status' && (
     <>
-    <Text as="h3" variant="headingMd">ステータスごとの入荷予定</Text>
+    <Text as="h3" variant="headingMd">{t('title.statusChart')}</Text>
       {statusOrder.map(status => {
         const shipmentsForStatus = getStatusStats(shipments)[status] || [];
         const rows = shipmentsForStatus.flatMap(s =>
@@ -398,7 +418,7 @@ export default function Home() {
             onClick={() => setSelectedShipment(s)}
             tabIndex={0}
             onKeyDown={e => { if (e.key === 'Enter') setSelectedShipment(s); }}
-            title="クリックで詳細"
+            title={t('message.clickForDetails')}
             key={s.si_number + item.name}
           >
             {s.si_number}
@@ -412,13 +432,8 @@ export default function Home() {
             <Text as="h4" variant="headingMd">{status}</Text>
             <DataTable
               columnContentTypes={['text', 'text', 'numeric']}
-              headings={['SI番号', '商品名', '数量']}
+              headings={[t('label.siNumber'), t('label.productName'), t('label.quantity')]}
               rows={rows}
-              //onRowClick={(_row, index) => {
-                //const siNumber = rows[index][0];
-                //const shipment = (getStatusStats(shipments)[status] || []).find(s => s.si_number === siNumber);
-                //if (shipment) setSelectedShipment(shipment);
-              //}}
             />
           </div>
         );
@@ -431,7 +446,7 @@ export default function Home() {
         {/* SI番号で検索 */}
         {detailViewMode === 'search' && (
             <>
-              <Text as="h3" variant="headingMd">SI番号で検索（前方一致・上位10件）</Text>
+              <Text as="h3" variant="headingMd">{t('title.siSearch')}</Text>
               <TextField
                 label="SI番号"
                 value={siQuery}
@@ -443,7 +458,7 @@ export default function Home() {
               />
               <DataTable
                 columnContentTypes={['text', 'text', 'text']}
-                headings={['SI番号', 'ETA', '仕入れ先']}
+                headings={[t('label.siNumber'), t('label.eta'), t('label.supplier')]}
                 rows={filteredShipments.map((s, idx) => [
                   <span
                     style={{ color: "#2a5bd7", cursor: "pointer", textDecoration: "underline" }}
@@ -451,17 +466,16 @@ export default function Home() {
                     key={s.si_number}
                     tabIndex={0}
                     onKeyDown={e => { if (e.key === 'Enter') setSelectedShipment(s); }}
-                    title="クリックで詳細"
+                    title={t('message.clickForDetails')}
                   >
                     {s.si_number}
                   </span>,
                   s.eta,
                   s.supplier_name
                 ])}
-                //onRowClick={(_row, index) => setSelectedShipment(filteredShipments[index])}
               />
               {siQuery && filteredShipments.length === 0 && (
-                <Banner status="info">該当するSIがありません</Banner>
+                <Banner status="info">{t('message.noMatchingSi')}</Banner>
               )}
             </>
             )}
@@ -476,4 +490,13 @@ export default function Home() {
     </Page>
   </>
   );
+}
+
+// サーバーサイドで翻訳データを取得
+export async function getStaticProps({ locale }) {
+  return {
+    props: {
+      ...(await serverSideTranslations(locale, ['common'])),
+    },
+  };
 }

@@ -1,24 +1,50 @@
 // my-next-app/components/StatusCard.jsx
+
+import React from 'react';
+import { useTranslation } from 'next-i18next';
+import { Card, Text } from '@shopify/polaris';
+
 function StatusCard({ si_number, status, eta, onSelectShipment }) {
-    return (
-      <div style={{
-        border: '1px solid #ddd',
-        padding: '1rem',
-        margin: '1rem 0',
-        borderRadius: '8px',
-        backgroundColor: '#f9f9f9',
-        fontFamily: 'sans-serif'
-      }}>
-        <h3
-        className="text-lg font-bold cursor-pointer text-blue-600"
-        onClick={onSelectShipment}
+  const { t } = useTranslation('common');  
+  
+  return (
+    <Card sectioned>
+       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+        <Text 
+          variant="headingMd" 
+          as="h3"
+          color="interactive"
+          textDecorationLine="underline"
+          onClick={onSelectShipment}
+          style={{ cursor: 'pointer' }}
         >
-        SI: {si_number}
-        </h3>
-        <strong>SI番号：</strong>#{si_number}<br />
-        <strong>ステータス：</strong>{status}<br />
-        <strong>到着予定日：</strong>{eta}
+          {t('statusCard.siLabel')} {si_number}
+        </Text>
+        
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+          <Text as="p">
+            <Text variant="bodyMd" fontWeight="semibold" as="span">
+              {t('statusCard.siNumber')}
+            </Text>
+            #{si_number}
+          </Text>
+          
+          <Text as="p">
+            <Text variant="bodyMd" fontWeight="semibold" as="span">
+              {t('statusCard.status')}
+            </Text>
+            {status}
+          </Text>
+          
+          <Text as="p">
+            <Text variant="bodyMd" fontWeight="semibold" as="span">
+              {t('statusCard.eta')}
+            </Text>
+            {eta}
+          </Text>
+        </div>
       </div>
+    </Card>
     );
   }
   

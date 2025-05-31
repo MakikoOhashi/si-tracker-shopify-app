@@ -1,5 +1,6 @@
 // my-next-app/components/Modal.jsx
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'next-i18next';
 import {
   Modal,
   Button,
@@ -11,19 +12,27 @@ import {
   Text
 } from '@shopify/polaris';
 
-const FILE_TYPES = [
-  { label: 'インボイスファイル', key: 'invoice' },
-  { label: 'PLファイル', key: 'pl' },
-  { label: 'SIファイル', key: 'si' },
-  { label: 'その他ファイル', key: 'other' },
-];
-
 const CustomModal = ({ shipment, onClose }) => {
+  const { t } = useTranslation('common');
   const [editMode, setEditMode] = useState(false);
   const [formData, setFormData] = useState(shipment);
-  //const [fileUrl, setFileUrl] = useState(''); // ファイルURLを保存するステート
-  // input valueのcontrolled/uncontrolled対策
-  //const getValue = (v) => v ?? "";
+
+const FILE_TYPES = [
+  { label: t('modal.fileTypes.invoice'), key: 'invoice' },
+  { label: t('modal.fileTypes.pl'), key: 'pl' },
+  { label: t('modal.fileTypes.si'), key: 'si' },
+  { label: t('modal.fileTypes.other'), key: 'other' },
+];
+
+  // ステータスオプションを翻訳可能にする
+  const STATUS_OPTIONS = [
+    { label: t('modal.status.siIssued'), value: "SI発行済" },
+    { label: t('modal.status.scheduleConfirmed'), value: "船積スケジュール確定" },
+    { label: t('modal.status.shipping'), value: "船積中" },
+    { label: t('modal.status.customsClearance'), value: "輸入通関中" },
+    { label: t('modal.status.warehouseArrival'), value: "倉庫着" }
+  ];
+
 
   useEffect(() => {
     if (shipment) setFormData(shipment);
@@ -39,10 +48,10 @@ const CustomModal = ({ shipment, onClose }) => {
     });
     const json = await res.json();
     if (json.error) {
-      alert('保存に失敗しました');
+      alert(t('modal.messages.saveFailed'));
       console.error(json.error);
     } else {
-      alert('保存しました！');
+      alert(t('modal.messages.saveSuccess'));
       setEditMode(false);
     }
   };
@@ -62,21 +71,21 @@ const CustomModal = ({ shipment, onClose }) => {
     });
     const json = await res.json();
     if (json.error) {
-      alert(`${type.toUpperCase()} アップロード失敗: ${json.error}`);
+      alert(`${type.toUpperCase()}  ${t('modal.messages.uploadFailed')}: ${json.error}`);
       return;
     }
     setFormData((prev) => ({
       ...prev,
       [`${type}_url`]: json.publicUrl,
     }));
-    alert(`${type.toUpperCase()} アップロード完了！`);
+    alert(`${type.toUpperCase()}${t('modal.messages.uploadSuccess')}`);
   };
 
   // ファイル削除API呼び出し
   const handleFileDelete = async (type) => {
     const url = formData[`${type}_url`];
     if (!url) return;
-    if (!window.confirm("本当に削除してよろしいですか？")) return;
+    if (!window.confirm(t('modal.messages.deleteConfirm'))) return;
 
     const res = await fetch('/api/deleteShipmentFile', {
       method: 'POST',
@@ -89,14 +98,14 @@ const CustomModal = ({ shipment, onClose }) => {
     });
     const json = await res.json();
     if (json.error) {
-      alert(`削除に失敗しました: ${json.error}`);
+      alert(`${t('modal.messages.deleteFailed')}: ${json.error}`);
       return;
     }
     setFormData((prev) => ({
       ...prev,
       [`${type}_url`]: undefined,
     }));
-    alert('削除しました');
+    alert(t('modal.messages.deleteSuccess'));
   };
 
 
@@ -104,14 +113,14 @@ const CustomModal = ({ shipment, onClose }) => {
     <Modal
       open={!!shipment}
       onClose={onClose}
-      title={`SI詳細: ${shipment?.si_number || ""}`}
+      title={`${t('modal.title')}: ${shipment?.si_number || ""}`}
       primaryAction={editMode
-        ? { content: '💾 保存', onAction: handleSave }
-        : { content: '✎ 編集', onAction: () => setEditMode(true) }
+        ? { content: `💾 ${t('modal.buttons.save')}`, onAction: handleSave }
+        : { content: `✎ ${t('modal.buttons.edit')}`, onAction: () => setEditMode(true) }
       }
       secondaryActions={[
-        ...(editMode ? [{ content: 'キャンセル', onAction: () => setEditMode(false) }] : []),
-        { content: '閉じる', onAction: onClose }
+        ...(editMode ? [{ content:  t('modal.buttons.cancel'), onAction: () => setEditMode(false) }] : []),
+        { content: t('modal.buttons.close'), onAction: onClose }
       ]}
     >
 
@@ -121,84 +130,78 @@ const CustomModal = ({ shipment, onClose }) => {
           <BlockStack gap="400">
             {/* ステータス */}
             <Select
-              label="ステータス"
+              label={t('modal.fields.status')}
               value={formData.status || ""}
-              options={[
-                { label: "SI発行済", value: "SI発行済" },
-                { label: "船積スケジュール確定", value: "船積スケジュール確定" },
-                { label: "船積中", value: "船積中" },
-                { label: "輸入通関中", value: "輸入通関中" },
-                { label: "倉庫着", value: "倉庫着" }
-              ]}
+              options={STATUS_OPTIONS}
               onChange={v => setFormData(prev => ({ ...prev, status: v }))}
             />
             {/* 輸送手段 */}
             <TextField
-              label="輸送手段"
+              label={t('modal.fields.transportType')}
               value={formData.transport_type || ""}
               onChange={v => setFormData(prev => ({ ...prev, transport_type: v }))}
             />
             {/* ETD/ETA */}
             <TextField
-              label="ETD"
+              label={t('modal.fields.etd')}
               type="date"
               value={formData.etd || ""}
               onChange={v => setFormData(prev => ({ ...prev, etd: v }))}
             />
             <TextField
-              label="ETA"
+              label={t('modal.fields.eta')}
               type="date"
               value={formData.eta || ""}
               onChange={v => setFormData(prev => ({ ...prev, eta: v }))}
             />
             {/* 遅延 */}
             <Select
-              label="遅延"
+              label={t('modal.fields.delayed')}
               value={String(formData.delayed ?? false)}
               options={[
-                { label: "なし", value: "false" },
-                { label: "あり", value: "true" }
+                { label: t('modal.options.no'), value: "false" },
+                { label: t('modal.options.yes'), value: "true" }
               ]}
               onChange={v => setFormData(prev => ({ ...prev, delayed: v === "true" }))}
             />
             {/* 通関日・倉庫着日 */}
             <TextField
-              label="通関日"
+              label={t('modal.fields.clearanceDate')}
               type="date"
               value={formData.clearance_date || ""}
               onChange={v => setFormData(prev => ({ ...prev, clearance_date: v }))}
             />
             <TextField
-              label="倉庫着日"
+              label={t('modal.fields.arrivalDate')}
               type="date"
               value={formData.arrival_date || ""}
               onChange={v => setFormData(prev => ({ ...prev, arrival_date: v }))}
             />
             {/* 仕入れ先 */}
             <TextField
-              label="仕入れ先"
+              label={t('modal.fields.supplier')}
               value={formData.supplier_name || ""}
               onChange={v => setFormData(prev => ({ ...prev, supplier_name: v }))}
             />
             {/* メモ */}
             <TextField
-              label="メモ"
+              label={t('modal.fields.memo')}
               multiline={3}
               value={formData.memo || ""}
               onChange={v => setFormData(prev => ({ ...prev, memo: v }))}
             />
             {/* アーカイブ */}
             <Checkbox
-              label="アーカイブ"
+              label={t('modal.fields.archive')}
               checked={!!formData.is_archived}
               onChange={v => setFormData(prev => ({ ...prev, is_archived: v }))}
             />
             {/* 積載商品リスト */}
-            <Text as="h4" variant="headingSm">積載商品リスト</Text>
+            <Text as="h4" variant="headingSm">{t('modal.sections.itemList')}</Text>
             {(formData.items || []).map((item, idx) => (
               <InlineStack key={idx} gap="200" align="center">
                 <TextField
-                  label="商品名"
+                  label={t('modal.fields.itemName')}
                   value={item.name || ""}
                   onChange={v => {
                     const items = [...formData.items];
@@ -207,7 +210,7 @@ const CustomModal = ({ shipment, onClose }) => {
                   }}
                 />
                 <TextField
-                  label="数量"
+                  label={t('modal.fields.quantity')}
                   type="number"
                   value={String(item.quantity || "")}
                   onChange={v => {
@@ -226,7 +229,7 @@ const CustomModal = ({ shipment, onClose }) => {
                     setFormData(prev => ({ ...prev, items }));
                   }}
                 >
-                  削除
+                  {t('modal.buttons.delete')}
                 </Button>
               </InlineStack>
             ))}
@@ -239,10 +242,10 @@ const CustomModal = ({ shipment, onClose }) => {
                 }))
               }
             >
-              ＋商品追加
+              ＋{t('modal.buttons.addItem')}
             </Button>
             {/* ファイルアップロード */}
-            <Text as="h4" variant="headingSm">関連ファイル</Text>
+            <Text as="h4" variant="headingSm">{t('modal.sections.relatedFiles')}</Text>
             {FILE_TYPES.map(({ label, key }) => (
               <BlockStack key={key} gap="100">
                 <Text>{label}:</Text>
@@ -250,10 +253,10 @@ const CustomModal = ({ shipment, onClose }) => {
                 {formData[`${key}_url`] && (
                   <InlineStack gap="100">
                     <Button url={formData[`${key}_url`]} target="_blank" external>
-                      📄 アップロード済み{label}を見る
+                      📄 {t('modal.buttons.viewFile', { fileType: label })}
                     </Button>
                     <Button size="slim" destructive onClick={() => handleFileDelete(key)}>
-                      削除
+                      {t('modal.buttons.delete')}
                     </Button>
                   </InlineStack>
                 )}
@@ -262,44 +265,44 @@ const CustomModal = ({ shipment, onClose }) => {
           </BlockStack>
         ) : (
           <BlockStack gap="300">
-          <Text><b>ステータス:</b> {shipment.status}</Text>
-          <Text><b>輸送手段:</b> {shipment.transport_type}</Text>
-          <Text><b>ETD:</b> {shipment.etd}</Text>
-          <Text><b>ETA:</b> {shipment.eta}</Text>
-          <Text><b>遅延:</b> {shipment.delayed ? "あり" : "なし"}</Text>
-          <Text><b>通関日:</b> {shipment.clearance_date || "未定"}</Text>
-          <Text><b>倉庫着日:</b> {shipment.arrival_date || "未定"}</Text>
-          <Text><b>仕入れ先:</b> {shipment.supplier_name}</Text>
-          <Text><b>メモ:</b> {shipment.memo || "なし"}</Text>
-          <Text><b>アーカイブ:</b> {shipment.is_archived ? "✅" : "❌"}</Text>
-          <Text as="h4" variant="headingSm">積載商品リスト</Text>
+          <Text><b>{t('modal.fields.status')}:</b> {shipment.status}</Text>
+            <Text><b>{t('modal.fields.transportType')}:</b> {shipment.transport_type}</Text>
+            <Text><b>{t('modal.fields.etd')}:</b> {shipment.etd}</Text>
+            <Text><b>{t('modal.fields.eta')}:</b> {shipment.eta}</Text>
+            <Text><b>{t('modal.fields.delayed')}:</b> {shipment.delayed ? t('modal.options.yes') : t('modal.options.no')}</Text>
+            <Text><b>{t('modal.fields.clearanceDate')}:</b> {shipment.clearance_date || t('modal.labels.tbd')}</Text>
+            <Text><b>{t('modal.fields.arrivalDate')}:</b> {shipment.arrival_date || t('modal.labels.tbd')}</Text>
+            <Text><b>{t('modal.fields.supplier')}:</b> {shipment.supplier_name}</Text>
+            <Text><b>{t('modal.fields.memo')}:</b> {shipment.memo || t('modal.labels.none')}</Text>
+            <Text><b>{t('modal.fields.archive')}:</b> {shipment.is_archived ? "✅" : "❌"}</Text>
+            <Text as="h4" variant="headingSm">{t('modal.sections.itemList')}</Text>
           <ul>
             {(shipment.items || []).map((item, i) => (
-              <li key={i}>{item.name}：{item.quantity}個</li>
+              <li key={i}>{item.name}：{item.quantity}{t('modal.labels.pieces')}</li>
             ))}
           </ul>
-          <Text as="h4" variant="headingSm">関連ファイル</Text>
+          <Text as="h4" variant="headingSm">{t('modal.sections.relatedFiles')}</Text>
           <BlockStack gap="100">
-            {shipment.invoice_url && (
-              <Button url={shipment.invoice_url} target="_blank" external>
-                Invoice ファイルを見る
-              </Button>
-            )}
-            {shipment.pl_url && (
-              <Button url={shipment.pl_url} target="_blank" external>
-                PL ファイルを見る
-              </Button>
-            )}
-            {shipment.si_url && (
-              <Button url={shipment.si_url} target="_blank" external>
-                SI ファイルを見る
-              </Button>
-            )}
-            {shipment.other_url && (
-              <Button url={shipment.other_url} target="_blank" external>
-                その他ファイルを見る
-              </Button>
-            )}
+          {shipment.invoice_url && (
+                <Button url={shipment.invoice_url} target="_blank" external>
+                  {t('modal.buttons.viewFileType', { fileType: t('modal.fileTypes.invoice') })}
+                </Button>
+              )}
+              {shipment.pl_url && (
+                <Button url={shipment.pl_url} target="_blank" external>
+                  {t('modal.buttons.viewFileType', { fileType: t('modal.fileTypes.pl') })}
+                </Button>
+              )}
+              {shipment.si_url && (
+                <Button url={shipment.si_url} target="_blank" external>
+                  {t('modal.buttons.viewFileType', { fileType: t('modal.fileTypes.si') })}
+                </Button>
+              )}
+              {shipment.other_url && (
+                <Button url={shipment.other_url} target="_blank" external>
+                  {t('modal.buttons.viewFileType', { fileType: t('modal.fileTypes.other') })}
+                </Button>
+              )}
           </BlockStack>
         </BlockStack>
       )}

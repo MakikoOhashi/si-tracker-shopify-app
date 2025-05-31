@@ -2,11 +2,14 @@
 
 import { AppProvider } from "@shopify/polaris";
 import '@shopify/polaris/build/esm/styles.css';
+import { appWithTranslation } from 'next-i18next';
 
-export default function MyApp({ Component, pageProps }) {
+function MyApp({ Component, pageProps }) {
   return (
     <AppProvider i18n={{}}>
       <Component {...pageProps} />
     </AppProvider>
   );
 }
+
+export default appWithTranslation(MyApp)

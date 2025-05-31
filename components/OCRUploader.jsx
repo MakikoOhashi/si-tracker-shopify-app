@@ -1,4 +1,4 @@
-//my-next-app/components/OCRUploader.jsx
+//si-tracker-shopify-app/components/OCRUploader.jsx
 
 import React, { useState, useEffect } from "react";
 import { Card, DropZone, Text, Spinner, TextField, Button, Banner } from "@shopify/polaris";
