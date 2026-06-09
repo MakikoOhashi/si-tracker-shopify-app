@@ -1,3 +1,16 @@
+# Archived Prototype
+
+This repository is an early prototype created during the development of TrackTo Inventory.
+
+The current maintained Shopify inventory tracking app is here:
+
+https://github.com/MakikoOhashi/track-to-inventory
+
+This repository is kept public for historical reference only and is no longer maintained.
+
+---
+
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/pages/api-reference/create-next-app).
 
 ## Getting Started
